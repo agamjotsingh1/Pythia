@@ -1,0 +1,3 @@
+NAME=pope_naive_gemsfdtd_interleaved
+TRACE=$(PYTHIA_HOME)/traces/traces/pope_naive_gemsfdtd_interleaved.champsimtrace.xz
+KNOBS=
