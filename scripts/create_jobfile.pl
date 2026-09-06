@@ -23,7 +23,6 @@ GetOptions('tlist=s' => \$tlist_file,
 	   'local=s' => \$local,
 	   'exclude=s' => \$exclude_list,
 	   'partition=s' => \$slurm_partition,
-	   'exclude=s' => \$exclude_list,
 	   'include=s' => \$include_list,
 	   'extra=s' => \$extra,
 ) or die "Usage: $0 --exe <executable> --exp <exp file> --tlist <trace list>\n";
