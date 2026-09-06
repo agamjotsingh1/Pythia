@@ -351,7 +351,9 @@ VOID Instruction(INS ins, VOID *v)
     {
         if (INS_MemoryOperandIsRead(ins, memOp)) 
         {
-            UINT32 read_size = INS_MemoryReadSize(ins);
+            // UINT32 read_size = INS_MemoryReadSize(ins);
+            UINT32 read_size = INS_MemoryOperandSize(ins, memOp);
+
 
             INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)MemoryRead,
                     IARG_MEMORYOP_EA, memOp, IARG_UINT32, memOp, IARG_UINT32, read_size,
