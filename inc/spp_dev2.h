@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <cstdint>
 #include <unordered_map>
 #include "prefetcher.h"
 #include "spp_dev2_helper.h"
