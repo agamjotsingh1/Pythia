@@ -1,7 +1,7 @@
-NAME=pope_naive_gemsfdtd_interleaved
-TRACE=$(PYTHIA_HOME)/traces/pope_naive_gemsfdtd_interleaved.champsimtrace.xz
+NAME=pope_naive_bwaves_interleaved
+TRACE=$(PYTHIA_HOME)/traces/pope_naive_bwaves_interleaved.champsimtrace.xz
 KNOBS=
 
-NAME=459.GemsFDTD-765B
-TRACE=$(PYTHIA_HOME)/traces/459.GemsFDTD-765B.champsimtrace.xz
+NAME=603.bwaves_s-891B
+TRACE=$(PYTHIA_HOME)/traces/603.bwaves_s-891B.champsimtrace.xz
 KNOBS=
