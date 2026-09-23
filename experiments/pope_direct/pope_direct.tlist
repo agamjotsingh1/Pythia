@@ -1,0 +1,7 @@
+NAME=pope_direct_603.bwaves_s-891B_interleaved
+TRACE=$(PYTHIA_HOME)/traces/pope_direct_603.bwaves_s-891B_interleaved.champsimtrace.xz
+KNOBS=
+
+NAME=603.bwaves_s-891B
+TRACE=$(PYTHIA_HOME)/traces/603.bwaves_s-891B.champsimtrace.xz
+KNOBS=
