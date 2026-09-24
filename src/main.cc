@@ -62,38 +62,72 @@ uint64_t previous_ppage, num_adjacent_page, num_cl[NUM_CPUS], allocated_pages, n
 
 void record_roi_stats(uint32_t cpu, CACHE *cache)
 {
-    for (uint32_t i=0; i<NUM_TYPES; i++) {
-        cache->roi_access[cpu][i] = cache->sim_access[cpu][i];
-        cache->roi_hit[cpu][i] = cache->sim_hit[cpu][i];
-        cache->roi_miss[cpu][i] = cache->sim_miss[cpu][i];
+    for (uint32_t c = 0; c < NUM_CTX; c++) {
+        for (uint32_t t = 0; t < NUM_TYPES; t++) {
+            cache->roi_access[cpu][c][t] = cache->sim_access[cpu][c][t];
+            cache->roi_hit[cpu][c][t]    = cache->sim_hit[cpu][c][t];
+            cache->roi_miss[cpu][c][t]   = cache->sim_miss[cpu][c][t];
+        }
     }
 }
 
 void print_roi_stats(uint32_t cpu, CACHE *cache)
 {
     uint64_t TOTAL_ACCESS = 0, TOTAL_HIT = 0, TOTAL_MISS = 0;
+    uint64_t roi_access[4] = {0}, roi_hit[4] = {0}, roi_miss[4] = {0};
 
-    for (uint32_t i=0; i<NUM_TYPES; i++) {
-        TOTAL_ACCESS += cache->roi_access[cpu][i];
-        TOTAL_HIT += cache->roi_hit[cpu][i];
-        TOTAL_MISS += cache->roi_miss[cpu][i];
+    for (uint32_t c = 0; c < NUM_CTX; c++) {
+        uint64_t TOTAL_ACCESS_CTX = 0, TOTAL_HIT_CTX = 0, TOTAL_MISS_CTX = 0;
+
+        for (uint32_t t = 0; t < NUM_TYPES; t++) {
+            TOTAL_ACCESS += cache->roi_access[cpu][c][t];
+            TOTAL_HIT    += cache->roi_hit[cpu][c][t];
+            TOTAL_MISS   += cache->roi_miss[cpu][c][t];
+
+            TOTAL_ACCESS_CTX += cache->roi_access[cpu][c][t];
+            TOTAL_HIT_CTX    += cache->roi_hit[cpu][c][t];
+            TOTAL_MISS_CTX   += cache->roi_miss[cpu][c][t];
+
+            roi_access[t] += cache->roi_access[cpu][c][t];
+            roi_hit[t] += cache->roi_hit[cpu][c][t];
+            roi_miss[t] += cache->roi_miss[cpu][c][t];
+        }
+
+        cout << "Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_total_access " << TOTAL_ACCESS_CTX << endl;
+        cout << "Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_total_hit " << TOTAL_HIT_CTX << endl;
+        cout << "Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_total_miss " << TOTAL_MISS_CTX << endl;
+        cout << "Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_loads " << cache->roi_access[cpu][c][0] << endl;
+        cout << "Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_load_hit " << cache->roi_hit[cpu][c][0] << endl;
+        cout << "Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_load_miss " << cache->roi_miss[cpu][c][0] << endl;
+
+        cout<< "Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_RFOs " << cache->roi_access[cpu][c][1] << endl
+            << "Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_RFO_hit " << cache->roi_hit[cpu][c][1] << endl
+            << "Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_RFO_miss " << cache->roi_miss[cpu][c][1] << endl
+            << "Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_prefetches " << cache->roi_access[cpu][c][2] << endl
+            << "Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_prefetch_hit " << cache->roi_hit[cpu][c][2] << endl
+            << "Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_prefetch_miss " << cache->roi_miss[cpu][c][2] << endl
+            << "Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_writebacks " << cache->roi_access[cpu][c][3] << endl
+            << "Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_writeback_hit " << cache->roi_hit[cpu][c][3] << endl
+            << "Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_writeback_miss " << cache->roi_miss[cpu][c][3] << endl;
     }
+
+    cout << endl << endl;
 
     cout<< "Core_" << cpu << "_" << cache->NAME << "_total_access " << TOTAL_ACCESS << endl
         << "Core_" << cpu << "_" << cache->NAME << "_total_hit " << TOTAL_HIT << endl
         << "Core_" << cpu << "_" << cache->NAME << "_total_miss " << TOTAL_MISS << endl
-        << "Core_" << cpu << "_" << cache->NAME << "_loads " << cache->roi_access[cpu][0] << endl
-        << "Core_" << cpu << "_" << cache->NAME << "_load_hit " << cache->roi_hit[cpu][0] << endl
-        << "Core_" << cpu << "_" << cache->NAME << "_load_miss " << cache->roi_miss[cpu][0] << endl
-        << "Core_" << cpu << "_" << cache->NAME << "_RFOs " << cache->roi_access[cpu][1] << endl
-        << "Core_" << cpu << "_" << cache->NAME << "_RFO_hit " << cache->roi_hit[cpu][1] << endl
-        << "Core_" << cpu << "_" << cache->NAME << "_RFO_miss " << cache->roi_miss[cpu][1] << endl
-        << "Core_" << cpu << "_" << cache->NAME << "_prefetches " << cache->roi_access[cpu][2] << endl
-        << "Core_" << cpu << "_" << cache->NAME << "_prefetch_hit " << cache->roi_hit[cpu][2] << endl
-        << "Core_" << cpu << "_" << cache->NAME << "_prefetch_miss " << cache->roi_miss[cpu][2] << endl
-        << "Core_" << cpu << "_" << cache->NAME << "_writebacks " << cache->roi_access[cpu][3] << endl
-        << "Core_" << cpu << "_" << cache->NAME << "_writeback_hit " << cache->roi_hit[cpu][3] << endl
-        << "Core_" << cpu << "_" << cache->NAME << "_writeback_miss " << cache->roi_miss[cpu][3] << endl
+        << "Core_" << cpu << "_" << cache->NAME << "_loads " << roi_access[0] << endl
+        << "Core_" << cpu << "_" << cache->NAME << "_load_hit " << roi_hit[0] << endl
+        << "Core_" << cpu << "_" << cache->NAME << "_load_miss " << roi_miss[0] << endl
+        << "Core_" << cpu << "_" << cache->NAME << "_RFOs " << roi_access[1] << endl
+        << "Core_" << cpu << "_" << cache->NAME << "_RFO_hit " << roi_hit[1] << endl
+        << "Core_" << cpu << "_" << cache->NAME << "_RFO_miss " << roi_miss[1] << endl
+        << "Core_" << cpu << "_" << cache->NAME << "_prefetches " << roi_access[2] << endl
+        << "Core_" << cpu << "_" << cache->NAME << "_prefetch_hit " << roi_hit[2] << endl
+        << "Core_" << cpu << "_" << cache->NAME << "_prefetch_miss " << roi_miss[2] << endl
+        << "Core_" << cpu << "_" << cache->NAME << "_writebacks " << roi_access[3] << endl
+        << "Core_" << cpu << "_" << cache->NAME << "_writeback_hit " << roi_hit[3] << endl
+        << "Core_" << cpu << "_" << cache->NAME << "_writeback_miss " << roi_miss[3] << endl
         << "Core_" << cpu << "_" << cache->NAME << "_prefetch_requested " << cache->pf_requested << endl
         << "Core_" << cpu << "_" << cache->NAME << "_prefetch_dropped " << cache->pf_dropped << endl
         << "Core_" << cpu << "_" << cache->NAME << "_prefetch_issued " << cache->pf_issued << endl
@@ -131,38 +165,77 @@ void print_roi_stats(uint32_t cpu, CACHE *cache)
 void print_sim_stats(uint32_t cpu, CACHE *cache)
 {
     uint64_t TOTAL_ACCESS = 0, TOTAL_HIT = 0, TOTAL_MISS = 0;
+    uint64_t tot_sim_access[4] = {0}, tot_sim_hit[4] = {0}, tot_sim_miss[4] = {0};
 
-    for (uint32_t i=0; i<NUM_TYPES; i++) {
-        TOTAL_ACCESS += cache->sim_access[cpu][i];
-        TOTAL_HIT += cache->sim_hit[cpu][i];
-        TOTAL_MISS += cache->sim_miss[cpu][i];
+    for (uint32_t c = 0; c < NUM_CTX; c++) {
+        uint64_t TOTAL_ACCESS_CTX = 0, TOTAL_HIT_CTX = 0, TOTAL_MISS_CTX = 0;
+
+        for (uint32_t t = 0; t < NUM_TYPES; t++) {
+            TOTAL_ACCESS += cache->sim_access[cpu][c][t];
+            TOTAL_HIT    += cache->sim_hit[cpu][c][t];
+            TOTAL_MISS   += cache->sim_miss[cpu][c][t];
+
+            TOTAL_ACCESS_CTX += cache->sim_access[cpu][c][t];
+            TOTAL_HIT_CTX    += cache->sim_hit[cpu][c][t];
+            TOTAL_MISS_CTX   += cache->sim_miss[cpu][c][t];
+
+            if (t < 4) {
+                tot_sim_access[t] += cache->sim_access[cpu][c][t];
+                tot_sim_hit[t]    += cache->sim_hit[cpu][c][t];
+                tot_sim_miss[t]   += cache->sim_miss[cpu][c][t];
+            }
+        }
+
+        cout << "Total_stats_Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_total_access " << TOTAL_ACCESS_CTX << endl;
+        cout << "Total_stats_Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_total_hit " << TOTAL_HIT_CTX << endl;
+        cout << "Total_stats_Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_total_miss " << TOTAL_MISS_CTX << endl;
+
+        cout << "Total_stats_Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_loads " << cache->sim_access[cpu][c][0] << endl
+                << "Total_stats_Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_load_hit " << cache->sim_hit[cpu][c][0] << endl
+                << "Total_stats_Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_load_miss " << cache->sim_miss[cpu][c][0] << endl
+                << "Total_stats_Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_RFOs " << cache->sim_access[cpu][c][1] << endl
+                << "Total_stats_Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_RFO_hit " << cache->sim_hit[cpu][c][1] << endl
+                << "Total_stats_Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_RFO_miss " << cache->sim_miss[cpu][c][1] << endl
+                << "Total_stats_Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_prefetches " << cache->sim_access[cpu][c][2] << endl
+                << "Total_stats_Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_prefetch_hit " << cache->sim_hit[cpu][c][2] << endl
+                << "Total_stats_Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_prefetch_miss " << cache->sim_miss[cpu][c][2] << endl
+                << "Total_stats_Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_writebacks " << cache->sim_access[cpu][c][3] << endl
+                << "Total_stats_Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_writeback_hit " << cache->sim_hit[cpu][c][3] << endl
+                << "Total_stats_Core_" << cpu << "_Ctx_" << c << "_" << cache->NAME << "_writeback_miss " << cache->sim_miss[cpu][c][3] << endl;
     }
 
-    cout<< "Total_stats_Core_" << cpu << "_" << cache->NAME << "_total_access " << TOTAL_ACCESS << endl
-        << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_total_hit " << TOTAL_HIT << endl
-        << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_total_miss " << TOTAL_MISS << endl
-        << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_loads " << cache->sim_access[cpu][0] << endl
-        << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_load_hit " << cache->sim_hit[cpu][0] << endl
-        << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_load_miss " << cache->sim_miss[cpu][0] << endl
-        << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_RFOs " << cache->sim_access[cpu][1] << endl
-        << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_RFO_hit " << cache->sim_hit[cpu][1] << endl
-        << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_RFO_miss " << cache->sim_miss[cpu][1] << endl
-        << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_prefetches " << cache->sim_access[cpu][2] << endl
-        << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_prefetch_hit " << cache->sim_hit[cpu][2] << endl
-        << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_prefetch_miss " << cache->sim_miss[cpu][2] << endl
-        << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_writebacks " << cache->sim_access[cpu][3] << endl
-        << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_writeback_hit " << cache->sim_hit[cpu][3] << endl
-        << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_writeback_miss " << cache->sim_miss[cpu][3] << endl
-        << endl;
+    cout << endl << endl;
+
+    cout << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_total_access " << TOTAL_ACCESS << endl
+            << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_total_hit " << TOTAL_HIT << endl
+            << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_total_miss " << TOTAL_MISS << endl
+            << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_loads " << tot_sim_access[0] << endl
+            << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_load_hit " << tot_sim_hit[0] << endl
+            << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_load_miss " << tot_sim_miss[0] << endl
+            << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_RFOs " << tot_sim_access[1] << endl
+            << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_RFO_hit " << tot_sim_hit[1] << endl
+            << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_RFO_miss " << tot_sim_miss[1] << endl
+            << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_prefetches " << tot_sim_access[2] << endl
+            << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_prefetch_hit " << tot_sim_hit[2] << endl
+            << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_prefetch_miss " << tot_sim_miss[2] << endl
+            << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_writebacks " << tot_sim_access[3] << endl
+            << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_writeback_hit " << tot_sim_hit[3] << endl
+            << "Total_stats_Core_" << cpu << "_" << cache->NAME << "_writeback_miss " << tot_sim_miss[3] << endl
+            << endl;
 }
 
 void print_branch_stats(uint32_t cpu)
 {
     // for (uint32_t i=0; i<NUM_CPUS; i++) {
-        cout << "Core_" << cpu << "_branch_prediction_accuracy " << (100.0*(ooo_cpu[cpu].num_branch - ooo_cpu[cpu].branch_mispredictions)) / ooo_cpu[cpu].num_branch << endl
-            << "Core_" << cpu << "_branch_MPKI " << (1000.0*ooo_cpu[cpu].branch_mispredictions)/(ooo_cpu[cpu].num_retired - ooo_cpu[cpu].warmup_instructions) << endl
-            << "Core_" << cpu << "_average_ROB_occupancy_at_mispredict " << (1.0*ooo_cpu[cpu].total_rob_occupancy_at_branch_mispredict)/ooo_cpu[cpu].branch_mispredictions << endl
-            << endl;
+        for (uint32_t c = 0; c < NUM_CTX; c++) {
+            float rob_occupancy = (1.0*ooo_cpu[cpu].total_rob_occupancy_at_branch_mispredict)/ooo_cpu[cpu].branch_mispredictions[c];
+            float accuracy = (100.0*(ooo_cpu[cpu].num_branch[c] - ooo_cpu[cpu].branch_mispredictions[c]) / ooo_cpu[cpu].num_branch[c]);
+            float mpki = (1000.0*ooo_cpu[cpu].branch_mispredictions[c])/(ooo_cpu[cpu].num_retired[c] - ooo_cpu[cpu].warmup_instructions);
+
+            cout << "Core_" << cpu << "_Ctx_" << c << "_branch_prediction_accuracy " << accuracy << endl;
+            cout << "Core_" << cpu << "_Ctx_" << c << "_branch_MPKI " << mpki << endl;
+            cout << "Core_" << cpu << "_Ctx_" << c << "_average_ROB_occupancy_at_mispredict " << rob_occupancy << endl << endl;
+        }
     // }
 }
 
@@ -208,9 +281,11 @@ void reset_cache_stats(uint32_t cpu, CACHE *cache)
         cache->MSHR_MERGED[i] = 0;
         cache->STALL[i] = 0;
 
-        cache->sim_access[cpu][i] = 0;
-        cache->sim_hit[cpu][i] = 0;
-        cache->sim_miss[cpu][i] = 0;
+        for(uint8_t c=0; c<NUM_CTX; c++) {
+            cache->sim_access[cpu][c][i] = 0;
+            cache->sim_hit[cpu][c][i] = 0;
+            cache->sim_miss[cpu][c][i] = 0;
+        }
     }
 
     cache->total_miss_latency = 0;
@@ -242,16 +317,25 @@ void finish_warmup()
 
     cout << endl;
     for (uint32_t i=0; i<NUM_CPUS; i++) {
-        cout << "Warmup complete CPU " << setw(2) << i << " instructions: " << setw(10) << ooo_cpu[i].num_retired << " cycles: " << setw(10) << current_core_cycle[i];
+        uint64_t total_retired = 0;
+
+        for(uint8_t c=0; c<NUM_CTX; c++) {
+            total_retired += ooo_cpu[i].num_retired[c];
+        }
+
+        cout << "Warmup complete CPU " << setw(2) << i << " instructions: " << setw(10) << total_retired << " cycles: " << setw(10) << current_core_cycle[i];
         cout << " (Simulation time: " << elapsed_hour << " hr " << elapsed_minute << " min " << elapsed_second << " sec) " << endl;
 
         ooo_cpu[i].begin_sim_cycle = current_core_cycle[i];
-        ooo_cpu[i].begin_sim_instr = ooo_cpu[i].num_retired;
+        ooo_cpu[i].begin_sim_instr = total_retired;
 
         // reset branch stats
-        ooo_cpu[i].num_branch = 0;
-        ooo_cpu[i].branch_mispredictions = 0;
-	ooo_cpu[i].total_rob_occupancy_at_branch_mispredict = 0;
+        for(uint8_t c=0; c<NUM_CTX; c++) {
+            ooo_cpu[i].num_branch[c] = 0;
+            ooo_cpu[i].branch_mispredictions[c] = 0;
+        }
+
+    	ooo_cpu[i].total_rob_occupancy_at_branch_mispredict = 0;
 
         reset_cache_stats(i, &ooo_cpu[i].L1I);
         reset_cache_stats(i, &ooo_cpu[i].L1D);
@@ -836,10 +920,13 @@ int main(int argc, char** argv)
             // proceed one cycle
             current_core_cycle[i]++;
 
+            uint64_t total_retired = 0;
+            for (uint32_t c = 0; c < NUM_CTX; c++) total_retired += ooo_cpu[i].num_retired[c];
+
             /* monitor IPC */
             if(knob::measure_ipc && current_core_cycle[i] >= ooo_cpu[i].next_measure_ipc_cycle)
             {
-                uint64_t ins_in_epoch = ooo_cpu[i].num_retired - ooo_cpu[i].last_num_ins;
+                uint64_t ins_in_epoch = total_retired - ooo_cpu[i].last_num_ins;
                 if(ins_in_epoch >= ooo_cpu[i].last_ins_in_epoch)
                 {
                     /* IPC increased */
@@ -852,7 +939,7 @@ int main(int argc, char** argv)
                     // MYLOG("Core-%u cycle %lu last_num_ins %lu last_ins_in_epoch %lu ins_in_epoch %lu DOWN", i, current_core_cycle[i], ooo_cpu[i].last_num_ins, ooo_cpu[i].last_ins_in_epoch, ins_in_epoch);
                     ooo_cpu[i].broadcast_ipc(0);
                 }
-                ooo_cpu[i].last_num_ins = ooo_cpu[i].num_retired;
+                ooo_cpu[i].last_num_ins = total_retired;
                 ooo_cpu[i].last_ins_in_epoch = ins_in_epoch;
                 ooo_cpu[i].next_measure_ipc_cycle = current_core_cycle[i] + knob::measure_ipc_epoch;
             }
@@ -895,20 +982,20 @@ int main(int argc, char** argv)
             }
 
             // heartbeat information
-            if (show_heartbeat && (ooo_cpu[i].num_retired >= ooo_cpu[i].next_print_instruction)) {
+            if (show_heartbeat && (total_retired >= ooo_cpu[i].next_print_instruction)) {
                 float cumulative_ipc;
                 if (warmup_complete[i])
-                    cumulative_ipc = (1.0*(ooo_cpu[i].num_retired - ooo_cpu[i].begin_sim_instr)) / (current_core_cycle[i] - ooo_cpu[i].begin_sim_cycle);
+                    cumulative_ipc = (1.0*(total_retired - ooo_cpu[i].begin_sim_instr)) / (current_core_cycle[i] - ooo_cpu[i].begin_sim_cycle);
                 else
-                    cumulative_ipc = (1.0*ooo_cpu[i].num_retired) / current_core_cycle[i];
-                float heartbeat_ipc = (1.0*ooo_cpu[i].num_retired - ooo_cpu[i].last_sim_instr) / (current_core_cycle[i] - ooo_cpu[i].last_sim_cycle);
+                    cumulative_ipc = (1.0*total_retired) / current_core_cycle[i];
+                float heartbeat_ipc = (1.0*total_retired - ooo_cpu[i].last_sim_instr) / (current_core_cycle[i] - ooo_cpu[i].last_sim_cycle);
 
-                cout << "Heartbeat CPU " << setw(2) << i << " instructions: " << setw(10) << ooo_cpu[i].num_retired << " cycles: " << setw(10) << current_core_cycle[i];
+                cout << "Heartbeat CPU " << setw(2) << i << " instructions: " << setw(10) << total_retired << " cycles: " << setw(10) << current_core_cycle[i];
                 cout << " heartbeat IPC: " << FIXED_FLOAT(heartbeat_ipc) << " cumulative IPC: " << FIXED_FLOAT(cumulative_ipc);
                 cout << " (Simulation time: " << elapsed_hour << " hr " << elapsed_minute << " min " << elapsed_second << " sec) " << endl;
                 ooo_cpu[i].next_print_instruction += STAT_PRINTING_PERIOD;
 
-                ooo_cpu[i].last_sim_instr = ooo_cpu[i].num_retired;
+                ooo_cpu[i].last_sim_instr = total_retired;
                 ooo_cpu[i].last_sim_cycle = current_core_cycle[i];
             }
 
@@ -918,7 +1005,7 @@ int main(int argc, char** argv)
 
             // check for warmup
             // warmup complete
-            if ((warmup_complete[i] == 0) && (ooo_cpu[i].num_retired > knob::warmup_instructions)) {
+            if ((warmup_complete[i] == 0) && (total_retired > knob::warmup_instructions)) {
                 warmup_complete[i] = 1;
                 all_warmup_complete++;
             }
@@ -937,9 +1024,9 @@ int main(int argc, char** argv)
             */
 
             // simulation complete
-            if ((all_warmup_complete > NUM_CPUS) && (simulation_complete[i] == 0) && (ooo_cpu[i].num_retired >= (ooo_cpu[i].begin_sim_instr + ooo_cpu[i].simulation_instructions))) {
+            if ((all_warmup_complete > NUM_CPUS) && (simulation_complete[i] == 0) && (total_retired >= (ooo_cpu[i].begin_sim_instr + ooo_cpu[i].simulation_instructions))) {
                 simulation_complete[i] = 1;
-                ooo_cpu[i].finish_sim_instr = ooo_cpu[i].num_retired - ooo_cpu[i].begin_sim_instr;
+                ooo_cpu[i].finish_sim_instr = total_retired - ooo_cpu[i].begin_sim_instr;
                 ooo_cpu[i].finish_sim_cycle = current_core_cycle[i] - ooo_cpu[i].begin_sim_cycle;
 
                 cout << "Finished CPU " << i << " instructions: " << ooo_cpu[i].finish_sim_instr << " cycles: " << ooo_cpu[i].finish_sim_cycle;

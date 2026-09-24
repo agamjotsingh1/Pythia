@@ -3,6 +3,7 @@
 
 #include "cache.h"
 #include "instruction.h"
+#include <cstdint>
 
 #ifdef CRC2_COMPILE
 #define STAT_PRINTING_PERIOD 1000000
@@ -44,12 +45,15 @@ class O3_CPU {
     // instruction
     input_instr current_instr;
     cloudsuite_instr current_cloudsuite_instr;
-    uint64_t instr_unique_id, completed_executions, 
-             begin_sim_cycle, begin_sim_instr, 
+    uint64_t instr_unique_id, completed_executions,
+             begin_sim_cycle, begin_sim_instr,
              last_sim_cycle, last_sim_instr,
              finish_sim_cycle, finish_sim_instr,
              warmup_instructions, simulation_instructions, instrs_to_read_this_cycle, instrs_to_fetch_this_cycle,
-             next_print_instruction, num_retired;
+             next_print_instruction;
+
+    uint64_t num_retired[NUM_CTX] = {0};
+
     uint32_t inflight_reg_executions, inflight_mem_executions, num_searched;
     uint32_t next_ITLB_fetch;
 
@@ -58,17 +62,17 @@ class O3_CPU {
     // reorder buffer, load/store queue, register file
     CORE_BUFFER ROB{"ROB", ROB_SIZE};
     LOAD_STORE_QUEUE LQ{"LQ", LQ_SIZE}, SQ{"SQ", SQ_SIZE};
-    
+
     // store array, this structure is required to properly handle store instructions
-    uint64_t STA[STA_SIZE], STA_head, STA_tail; 
+    uint64_t STA[STA_SIZE], STA_head, STA_tail;
 
     // Ready-To-Execute
-    uint32_t RTE0[ROB_SIZE], RTE0_head, RTE0_tail, 
-             RTE1[ROB_SIZE], RTE1_head, RTE1_tail;  
+    uint32_t RTE0[ROB_SIZE], RTE0_head, RTE0_tail,
+             RTE1[ROB_SIZE], RTE1_head, RTE1_tail;
 
     // Ready-To-Load
-    uint32_t RTL0[LQ_SIZE], RTL0_head, RTL0_tail, 
-             RTL1[LQ_SIZE], RTL1_head, RTL1_tail;  
+    uint32_t RTL0[LQ_SIZE], RTL0_head, RTL0_tail,
+             RTL1[LQ_SIZE], RTL1_head, RTL1_tail;
 
     // Ready-To-Store
     uint32_t RTS0[SQ_SIZE], RTS0_head, RTS0_tail,
@@ -79,7 +83,8 @@ class O3_CPU {
     int mispredicted_branch_iw_index; // index in the instruction window of the mispredicted branch.  fetch resumes after the instruction at this index executes
     uint8_t  fetch_stall;
     uint64_t fetch_resume_cycle;
-    uint64_t num_branch, branch_mispredictions;
+    uint64_t num_branch[NUM_CTX] = {0};
+    uint64_t branch_mispredictions[NUM_CTX] = {0};
     uint64_t total_rob_occupancy_at_branch_mispredict;
 
     // TLBs and caches
@@ -112,7 +117,6 @@ class O3_CPU {
         instrs_to_fetch_this_cycle = 0;
 
         next_print_instruction = STAT_PRINTING_PERIOD;
-        num_retired = 0;
 
         last_num_ins = 0;
         last_ins_in_epoch = 0;
@@ -128,9 +132,7 @@ class O3_CPU {
         branch_mispredict_stall_fetch = 0;
         mispredicted_branch_iw_index = 0;
         fetch_stall = 0;
-	fetch_resume_cycle = 0;
-        num_branch = 0;
-        branch_mispredictions = 0;
+    	fetch_resume_cycle = 0;
 
         for (uint32_t i=0; i<STA_SIZE; i++)
             STA[i] = UINT64_MAX;
@@ -172,7 +174,7 @@ class O3_CPU {
          execute_instruction(),
          schedule_memory_instruction(),
          execute_memory_instruction(),
-         do_scheduling(uint32_t rob_index),  
+         do_scheduling(uint32_t rob_index),
          reg_dependency(uint32_t rob_index),
          do_execution(uint32_t rob_index),
          do_memory_scheduling(uint32_t rob_index),
@@ -207,7 +209,7 @@ class O3_CPU {
     // branch predictor
     uint8_t predict_branch(uint64_t ip);
     void    initialize_branch_predictor(),
-            last_branch_result(uint64_t ip, uint8_t taken); 
+            last_branch_result(uint64_t ip, uint8_t taken);
 };
 
 extern O3_CPU ooo_cpu[NUM_CPUS];

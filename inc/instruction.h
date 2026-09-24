@@ -3,6 +3,7 @@
 
 
 // instruction format
+#include <cstdint>
 #define ROB_SIZE 256
 #define LQ_SIZE 72
 #define SQ_SIZE 56
@@ -111,6 +112,8 @@ class ooo_model_instr {
             asid[2],
             reg_RAW_checked[NUM_INSTR_SOURCES];
 
+    uint8_t ctx_id;
+
     uint32_t fetched, scheduled;
     int num_reg_ops, num_mem_ops, num_reg_dependent;
 
@@ -119,7 +122,7 @@ class ooo_model_instr {
 
     uint8_t destination_registers[NUM_INSTR_DESTINATIONS_SPARC]; // output registers
 
-    uint8_t source_registers[NUM_INSTR_SOURCES]; // input registers 
+    uint8_t source_registers[NUM_INSTR_SOURCES]; // input registers
 
     // these are instruction ids of other instructions in the window
     //int64_t registers_instrs_i_depend_on[NUM_INSTR_SOURCES];
@@ -152,6 +155,7 @@ class ooo_model_instr {
 
     ooo_model_instr() {
         instr_id = 0;
+        ctx_id = 0;
         ip = 0;
         fetch_producer = 0;
         producer_id = 0;
